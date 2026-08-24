@@ -275,10 +275,11 @@ def _assignDrone(player, drone, pending):
         return
     drone.latam_bunker_fpv = 1
     pending['drone'] = drone
+    # Team is set by the spawner ('team' in props). Vehicle objects have
+    # getTeam but not setTeam; calling setTeam logs AttributeError.
     try:
         drone.setPosition(pending['roof'])
         drone.setRotation(pending['rotation'])
-        drone.setTeam(player.getTeam())
     except:
         rdebug.errorMessage()
     _tryEnterDrone(_playerKey(player))
