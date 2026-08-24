@@ -10,5 +10,6 @@ realityinit.init(False)  # Switch to True if using debugger executables (PRLaunc
 
 # ------------------------------------------------------------------
 # Add your custom script's initilization below
-
+import latambunkerfpv
+latambunkerfpv.init()
 
