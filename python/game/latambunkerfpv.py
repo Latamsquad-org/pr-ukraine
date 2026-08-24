@@ -1,6 +1,7 @@
 # FPV launch from a fully built sandbag bunker (command_bunker mesh).
-# Press E inside the emplacement to spawn fpv_drone 10 m above, then enter it.
-# Exit the drone to teleport back inside the bunker.
+# Press E next to the emplacement to spawn fpv_drone 10 m above, then enter it.
+# Never seat the player inside the bunker. Exit the drone next to it, not inside.
+# Do not change bunker HP. If the drone dies, move it away and drop the player outside.
 import bf2
 import host
 import realityadmin as radmin
@@ -14,8 +15,8 @@ import realitytimer as rtimer
 BUNKER_TEMPLATES = ('deployable_sandbags_5m', 'deployable_sandbags_5m_sp')
 DRONE_TEMPLATE = 'fpv_drone'
 PCO_TYPE = 'dice.hfe.world.ObjectTemplate.PlayerControlObject'
-# Interior offset in bunker local space (meters).
-INTERIOR_OFFSET = (0.0, -1.0, 0.0)
+# Stand outside the bunker in local space (meters). Not an interior seat.
+STAND_OFFSET = (0.0, 0.3, -5.0)
 # Spawn the drone this many meters above the bunker origin (world up).
 SPAWN_HEIGHT = 10.0
 # Consider the emplacement built when HP is at least this ratio of maxHitPoints.
@@ -41,7 +42,7 @@ def init():
     host.registerHandler('AssetRemoved', _onAssetRemoved, 1)
     host.registerHandler('PlayerDeath', _onPlayerDeath, 1)
     host.registerHandler('PlayerDisconnect', _onPlayerDisconnect, 1)
-    rtimer.repeatingTask(_watchBunkers, 0.5)
+    rtimer.repeatingTask(_watchBunkers, 0.2)
     if not rmemory.isWindowsListenServer:
         revents.registerObjectSpawnedTemplate(DRONE_TEMPLATE)
         revents.registerObjectSpawnedCallback(_onObjectSpawned)
@@ -105,27 +106,50 @@ def _sameObj(a, b):
         return False
 
 
-def _isBunkerDead(bunker):
-    if bunker is None:
+def _isDeadObj(obj):
+    if obj is None:
         return True
     try:
-        if not bunker.isValid():
+        if not obj.isValid():
             return True
     except:
         return True
     try:
-        if bunker.getIsWreck():
+        if obj.getIsWreck():
             return True
     except:
         pass
     hp = None
     try:
-        hp = bunker.getDamage()
+        hp = obj.getDamage()
     except:
         hp = None
     if hp is not None and hp <= 0:
         return True
     return False
+
+
+def _isBunkerDead(bunker):
+    return _isDeadObj(bunker)
+
+
+def _isDroneDead(drone):
+    return _isDeadObj(drone)
+
+
+def _standPos(data):
+    bunker = None
+    if data is not None:
+        bunker = data.get('bunker')
+        stand = data.get('stand')
+        if stand is not None:
+            return stand
+    try:
+        if bunker is not None and bunker.isValid() and not _isBunkerDead(bunker):
+            return _worldOffset(bunker, STAND_OFFSET)
+    except:
+        pass
+    return _wreckStandPos(data)
 
 
 def _wreckStandPos(data):
@@ -139,9 +163,9 @@ def _wreckStandPos(data):
     origin = data.get('origin')
     if origin is not None:
         return (origin[0], origin[1] + WRECK_STAND_Y, origin[2])
-    interior = data.get('interior')
-    if interior is not None:
-        return (interior[0], interior[1] + 2.0, interior[2])
+    stand = data.get('stand')
+    if stand is not None:
+        return stand
     return None
 
 
@@ -204,7 +228,7 @@ def _onEnterVehicle(player, vehicle, freeSoldier=False):
 
 def _startLaunch(player, bunker):
     key = _playerKey(player)
-    interior = _worldOffset(bunker, INTERIOR_OFFSET)
+    stand = _worldOffset(bunker, STAND_OFFSET)
     roof = _airSpawnPos(bunker)
     rot = bunker.getRotation()
     origin = bunker.getPosition()
@@ -212,14 +236,14 @@ def _startLaunch(player, bunker):
         'player': player,
         'bunker': bunker,
         'origin': origin,
-        'interior': interior,
+        'stand': stand,
         'roof': roof,
         'rotation': (rot[0], 0.0, 0.0),
         'started': host.timer_getWallTime(),
         'bunker_ejected': 1,
         'use_sent': 0,
     }
-    # Leave the bunker seat immediately so the interior camera is only a blink.
+    # Leave the bunker PCO immediately. Do not keep an interior seat/camera.
     rmemory.sendPlayerButtonClickEvent(player, rmemory.PI_USE)
     _spawnDrone(player, bunker, roof, rot)
     rtimer.fireOnce(_tryEnterDrone, 0.2, key)
@@ -295,7 +319,7 @@ def _markFlying(key, pending, drone):
         'player': pending['player'],
         'bunker': pending['bunker'],
         'origin': pending.get('origin'),
-        'interior': pending['interior'],
+        'stand': pending.get('stand'),
         'drone': drone,
     }
     g_pending.pop(key, None)
@@ -333,7 +357,7 @@ def _tryEnterDrone(key):
         # Already in. Do not setPosition: moving an occupied vehicle kicks the player out.
         _markFlying(key, pending, drone)
         return
-    # Leave the bunker seat first. setPosition on a seated soldier does not move the camera.
+    # Leave the bunker PCO first. setPosition on a seated soldier does not move the camera.
     if _isBunker(current):
         now = host.timer_getWallTime()
         retry = (now - pending.get('started', now)) > 0.7 and not pending.get('bunker_eject_retry')
@@ -391,8 +415,9 @@ def _expireLaunch(key):
         current = _root(player.getVehicle())
         if _isBunker(current):
             _eject(player)
+            rtimer.fireOnce(_teleportAfterEject, 0.3, (player, _standPos(pending)))
         elif not _isDrone(current):
-            _teleportInside(player, pending.get('interior'))
+            _teleportTo(player, _standPos(pending))
     _cleanupDrone(pending.get('drone'))
 
 
@@ -406,7 +431,7 @@ def _onExitVehicle(player, vehicle):
     key = _playerKey(player)
     root = _root(vehicle)
     if key in g_pending and _isBunker(root):
-        # Leaving the bunker seat while launching the drone.
+        # Leaving the bunker PCO while launching the drone.
         return
     if not _isDrone(root):
         return
@@ -414,33 +439,33 @@ def _onExitVehicle(player, vehicle):
     pending = g_pending.pop(key, None)
     if pending is not None:
         g_cooldown[key] = host.timer_getWallTime() + REENTER_COOLDOWN
-        _teleportInside(player, pending.get('interior'))
+        _teleportTo(player, _standPos(pending))
         _cleanupDrone(pending.get('drone'))
         return
     flying = g_flying.pop(key, None)
     if flying is None:
         return
     g_cooldown[key] = host.timer_getWallTime() + REENTER_COOLDOWN
-    interior = flying.get('interior')
+    stand = flying.get('stand')
     bunker = flying.get('bunker')
     if flying.get('recalling'):
-        interior = _wreckStandPos(flying)
+        stand = _wreckStandPos(flying)
     elif bunker is not None and bunker.isValid() and not _isBunkerDead(bunker):
-        interior = _worldOffset(bunker, INTERIOR_OFFSET)
+        stand = _standPos(flying)
     elif bunker is None or _isBunkerDead(bunker):
-        interior = _wreckStandPos(flying)
-    _teleportInside(player, interior)
+        stand = _wreckStandPos(flying)
+    _teleportTo(player, stand)
     _cleanupDrone(flying.get('drone'))
 
 
-def _teleportInside(player, interior):
-    if interior is None:
+def _teleportTo(player, target):
+    if target is None:
         return
     if player is None or not player.isValid() or not player.isAlive() or player.isManDown():
         return
 
     def _move(args):
-        p, target = args
+        p, dest = args
         if p is None or not p.isValid() or not p.isAlive() or p.isManDown():
             return
         soldier = p.getDefaultVehicle()
@@ -449,15 +474,15 @@ def _teleportInside(player, interior):
         if soldier is not p.getVehicle():
             return
         try:
-            soldier.setPosition(target)
+            soldier.setPosition(dest)
         except:
             rdebug.errorMessage()
 
-    _move((player, interior))
-    rtimer.fireOnce(_move, 0.05, (player, interior))
-    rtimer.fireOnce(_move, 0.2, (player, interior))
-    rtimer.fireOnce(_move, 0.6, (player, interior))
-    rtimer.fireOnce(_move, 1.0, (player, interior))
+    _move((player, target))
+    rtimer.fireOnce(_move, 0.05, (player, target))
+    rtimer.fireOnce(_move, 0.2, (player, target))
+    rtimer.fireOnce(_move, 0.6, (player, target))
+    rtimer.fireOnce(_move, 1.0, (player, target))
 
 
 def _cleanupDrone(drone):
@@ -478,9 +503,35 @@ def _onAssetRemoved(typ, team, obj):
     _onBunkerGone(_root(obj))
 
 
+def _endFlight(key, flying):
+    # Drone died or was removed: put the player outside. Do not touch bunker HP.
+    if flying is None:
+        return
+    if flying.get('ending'):
+        return
+    flying['ending'] = 1
+    player = flying.get('player')
+    g_flying.pop(key, None)
+    g_cooldown[key] = host.timer_getWallTime() + REENTER_COOLDOWN
+    bunker = flying.get('bunker')
+    if bunker is not None and bunker.isValid() and not _isBunkerDead(bunker):
+        stand = _standPos(flying)
+    else:
+        stand = _wreckStandPos(flying)
+    if player is not None and player.isValid() and player.isAlive() and not player.isManDown():
+        current = _root(player.getVehicle())
+        if _isDrone(current):
+            rmemory.sendPlayerButtonClickEvent(player, rmemory.PI_USE)
+        _teleportTo(player, stand)
+    _cleanupDrone(flying.get('drone'))
+
+
 def _watchBunkers(args=None):
     for key, flying in list(g_flying.items()):
-        if flying.get('recalling'):
+        if flying.get('recalling') or flying.get('ending'):
+            continue
+        if _isDroneDead(flying.get('drone')):
+            _endFlight(key, flying)
             continue
         if _isBunkerDead(flying.get('bunker')):
             _onBunkerGone(flying.get('bunker'), flying)
@@ -509,7 +560,7 @@ def _onBunkerGone(bunker, flyingHint=None):
 def _recallFromDestroyedBunker(key, flying):
     flying['recalling'] = 1
     wreck = _wreckStandPos(flying)
-    flying['interior'] = wreck
+    flying['stand'] = wreck
     player = flying.get('player')
     g_cooldown[key] = host.timer_getWallTime() + REENTER_COOLDOWN
     if player is None or not player.isValid() or not player.isAlive() or player.isManDown():
@@ -534,7 +585,7 @@ def _finishRecall(args):
             except:
                 rdebug.errorMessage()
             rmemory.sendPlayerButtonClickEvent(player, rmemory.PI_USE)
-        _teleportInside(player, wreck)
+        _teleportTo(player, wreck)
     _cleanupDrone(drone)
 
 
@@ -550,7 +601,7 @@ def _cancelPendingToWreck(key, pending):
 
 def _teleportAfterEject(args):
     player, wreck = args
-    _teleportInside(player, wreck)
+    _teleportTo(player, wreck)
 
 
 def _onVehicleDestroyed(vehicle, attacker):
@@ -562,19 +613,16 @@ def _onVehicleDestroyed(vehicle, attacker):
         return
     if not getattr(root, 'latam_bunker_fpv', None):
         return
+    try:
+        if root.isValid():
+            root.setPosition((0.0, -500.0, 0.0))
+    except:
+        pass
     for key, flying in list(g_flying.items()):
-        if flying.get('drone') is root:
-            player = flying.get('player')
-            g_flying.pop(key, None)
-            g_cooldown[key] = host.timer_getWallTime() + REENTER_COOLDOWN
-            if player is not None and player.isValid() and player.isAlive() and not player.isManDown():
-                interior = flying.get('interior')
-                bunker = flying.get('bunker')
-                if bunker is not None and bunker.isValid() and not _isBunkerDead(bunker):
-                    interior = _worldOffset(bunker, INTERIOR_OFFSET)
-                else:
-                    interior = _wreckStandPos(flying)
-                _teleportInside(player, interior)
+        if flying.get('ending'):
+            continue
+        if _sameObj(flying.get('drone'), root):
+            _endFlight(key, flying)
 
 
 def _onPlayerDeath(victim, vehicle):
