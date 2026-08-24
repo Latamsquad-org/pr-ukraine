@@ -1,7 +1,7 @@
 rem Name of the server for the server list
 sv.serverName "[LATAMSQUAD] #4 Eventos - latamsquad.org"
 rem Password for joining the server
-sv.password "ukra"
+sv.password ""
 rem 1 for internet servers, 0 for everything else
 sv.internet 1
 rem IPv4 of the server
