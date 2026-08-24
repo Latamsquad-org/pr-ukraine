@@ -1,5 +1,5 @@
 # FPV launch from a fully built sandbag bunker (command_bunker mesh).
-# Press E inside the emplacement to spawn fpv_drone on the roof.
+# Press E inside the emplacement to spawn fpv_drone 10 m above, then enter it.
 # Exit the drone to teleport back inside the bunker.
 import bf2
 import host
@@ -14,14 +14,16 @@ import realitytimer as rtimer
 BUNKER_TEMPLATES = ('deployable_sandbags_5m', 'deployable_sandbags_5m_sp')
 DRONE_TEMPLATE = 'fpv_drone'
 PCO_TYPE = 'dice.hfe.world.ObjectTemplate.PlayerControlObject'
-# Roof and interior offsets in bunker local space (meters).
-ROOF_OFFSET = (0.0, 3.5, 0.0)
+# Interior offset in bunker local space (meters).
 INTERIOR_OFFSET = (0.0, -1.0, 0.0)
+# Spawn the drone this many meters above the bunker origin (world up).
+SPAWN_HEIGHT = 10.0
 # Consider the emplacement built when HP is at least this ratio of maxHitPoints.
 BUILT_HP_RATIO = 0.85
 # Ignore a new E on the bunker right after returning from the drone.
 REENTER_COOLDOWN = 2.0
-DRONE_MATCH_DIST_SQ = 25.0
+# 20 m radius: spawn is 10 m up, claim must still find the drone.
+DRONE_MATCH_DIST_SQ = 400.0
 # Stand a bit above the wreck origin so the soldier is not buried in debris.
 WRECK_STAND_Y = 1.0
 
@@ -84,6 +86,12 @@ def _worldOffset(obj, offset):
     rot = obj.getRotation()
     world = rcore.quaternionRotateVector3d(rot, offset)
     return rcore.vectorAddition(pos, world)
+
+
+def _airSpawnPos(bunker):
+    # World-up, not bunker-local: keeps the drone in the air even if the mesh is rotated.
+    pos = bunker.getPosition()
+    return (pos[0], pos[1] + SPAWN_HEIGHT, pos[2])
 
 
 def _sameObj(a, b):
@@ -191,7 +199,7 @@ def _onEnterVehicle(player, vehicle, freeSoldier=False):
 def _startLaunch(player, bunker):
     key = _playerKey(player)
     interior = _worldOffset(bunker, INTERIOR_OFFSET)
-    roof = _worldOffset(bunker, ROOF_OFFSET)
+    roof = _airSpawnPos(bunker)
     rot = bunker.getRotation()
     origin = bunker.getPosition()
     g_pending[key] = {
@@ -204,10 +212,12 @@ def _startLaunch(player, bunker):
         'started': host.timer_getWallTime(),
     }
     _spawnDrone(player, bunker, roof, rot)
-    rtimer.fireOnce(_tryEnterDrone, 0.4, key)
-    rtimer.fireOnce(_tryEnterDrone, 0.8, key)
-    rtimer.fireOnce(_tryEnterDrone, 1.3, key)
-    rtimer.fireOnce(_expireLaunch, 3.5, key)
+    rtimer.fireOnce(_tryEnterDrone, 0.3, key)
+    rtimer.fireOnce(_tryEnterDrone, 0.6, key)
+    rtimer.fireOnce(_tryEnterDrone, 1.0, key)
+    rtimer.fireOnce(_tryEnterDrone, 1.5, key)
+    rtimer.fireOnce(_tryEnterDrone, 2.2, key)
+    rtimer.fireOnce(_expireLaunch, 4.0, key)
 
 
 def _spawnDrone(player, bunker, roof, rot):
@@ -297,7 +307,14 @@ def _tryEnterDrone(key):
     if drone is None or not drone.isValid():
         return
     current = _root(player.getVehicle())
+    air = pending['roof']
     if _isDrone(current):
+        # Already in the drone: lift the vehicle to the air spawn (do not leave the player in the bunker mesh).
+        try:
+            current.setPosition(air)
+            current.setRotation(pending['rotation'])
+        except:
+            rdebug.errorMessage()
         g_flying[key] = {
             'player': player,
             'bunker': pending['bunker'],
@@ -307,13 +324,20 @@ def _tryEnterDrone(key):
         }
         g_pending.pop(key, None)
         return
-    # Leave the bunker seat, stand on the roof, then press E to enter the drone.
+    # Leave the bunker seat first. setPosition on a seated soldier does not move the camera.
     if _isBunker(current):
         rmemory.sendPlayerButtonClickEvent(player, rmemory.PI_USE)
+        return
     soldier = player.getDefaultVehicle()
+    if soldier is None or not soldier.isValid():
+        return
+    if soldier is not player.getVehicle():
+        rmemory.sendPlayerButtonClickEvent(player, rmemory.PI_USE)
+        return
     try:
-        soldier.setPosition(pending['roof'])
-        drone.setPosition(pending['roof'])
+        drone.setPosition(air)
+        drone.setRotation(pending['rotation'])
+        soldier.setPosition(air)
     except:
         rdebug.errorMessage()
         return
