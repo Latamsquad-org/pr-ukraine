@@ -1,0 +1,6 @@
+# Archivos temporales de Windows
+desktop.ini
+Thumbs.db
+
+# Copias duplicadas locales (ej. "archivo (1).con")
+* (1).*

@@ -1,0 +1,34 @@
+<map>
+	
+<name> Ulyanovsk </name>
+	
+<music> common/sound/menu/music/load/desolator_gliese_f.ogg </music>
+	
+<modes>
+		
+	<mode type="gpm_cq">
+			
+		<maptype players="16" type="aasalternative" locid="GAMEMODE_DESCRIPTION_aasalternative"></maptype>
+			
+		<maptype players="32" type="aasalternative" locid="GAMEMODE_DESCRIPTION_aasalternative"></maptype>
+			
+		<maptype players="64" type="aasfullassets" locid="GAMEMODE_DESCRIPTION_aasfullassets"></maptype>
+			
+		
+		
+	</mode>
+		
+	<mode type="gpm_skirmish">
+			
+		<maptype players="16" type="skirmish" locid="GAMEMODE_DESCRIPTION_skirmish"></maptype>			
+	
+	</mode>
+	
+	<mode type="gpm_coop">
+			<maptype ai="1" players="32" type="coopalternative" locid="GAMEMODE_DESCRIPTION_coopalternative"></maptype>
+			<maptype ai="1" players="64" type="coopfullassets" locid="GAMEMODE_DESCRIPTION_coopfullassets"></maptype>
+	</mode>
+</modes>
+
+</map>
+

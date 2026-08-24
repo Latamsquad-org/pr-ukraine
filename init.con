@@ -1,0 +1,14 @@
+rem Set up global recoil graph size
+rem This is client only, for server check realitymemory
+rhooks.setRecoilGraphSize 5
+
+objectDrawer.useOcclusion 1
+renderer.allowA2M 1
+renderer.enableHWOcclusion 1
+
+rem Converts linear RGB fog color to SRGB when setting fog colors
+renderer.srgbFogEnabled 0
+
+bf2Engine.playMovie Movies/PR_intro.bik 1
+
+include settings/launcher.con

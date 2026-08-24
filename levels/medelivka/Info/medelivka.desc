@@ -1,0 +1,13 @@
+<map>
+	<name> Medelivka (Seasonal)</name>
+	<music> common/sound/menu/music/load/mikuzable_medelivka.ogg </music>
+	<modes>
+		<mode type="gpm_cq">
+			<maptype players="16" type="aasfullassets" locid="GAMEMODE_DESCRIPTION_aasinfantry"></maptype>
+			<maptype players="32" type="aasfullassets" locid="GAMEMODE_DESCRIPTION_aasalternative"></maptype>
+			<maptype players="64" type="aasfullassets" locid="GAMEMODE_DESCRIPTION_aasfullassets"></maptype>
+			<maptype players="128" type="aasfullassets" locid="GAMEMODE_DESCRIPTION_aaslarge"></maptype>
+		</mode>
+	</modes>
+</map>
+

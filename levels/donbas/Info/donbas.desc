@@ -1,0 +1,22 @@
+<map>
+	<name> Donbas </name>
+	<music> common/sound/menu/music/load/unicode_preemptive_strike.ogg </music>
+	<modes>
+		<mode type="gpm_cq">
+			<maptype players="16" type="aasinfantry" locid="GAMEMODE_DESCRIPTION_aasinfantry"></maptype>
+			<maptype players="32" type="aasalternative" locid="GAMEMODE_DESCRIPTION_aasalternative"></maptype>
+			<maptype players="64" type="aasfullassets" locid="GAMEMODE_DESCRIPTION_aasfullassets"></maptype>
+			<maptype players="128" type="aasfulllarge" locid="GAMEMODE_DESCRIPTION_aasfullassets"></maptype>
+		</mode>
+	<mode type="gpm_gungame">
+			<maptype players="64" type="gungame" locid="GAMEMODE_DESCRIPTION_gungame"></maptype>
+		</mode>
+	<mode type="gpm_skirmish">
+			<maptype players="16" type="skirmish" locid="GAMEMODE_DESCRIPTION_skirmish"></maptype>
+		</mode>
+	<mode type="gpm_cnc">
+			<maptype players="64" type="cnc" locid="GAMEMODE_DESCRIPTION_cnc"></maptype>
+		</mode>
+	</modes>
+</map>
+

@@ -1,0 +1,7 @@
+fileManager.mountArchive content/common_server.zip Common
+fileManager.mountArchive content/factions_server.zip Factions
+fileManager.mountArchive content/menu_server.zip Menu
+fileManager.mountArchive content/objects_common_server.zip Objects
+fileManager.mountArchive content/objects_statics_server.zip Objects
+fileManager.mountArchive content/objects_vehicles_server.zip Objects
+fileManager.mountArchive content/objects_weapons_server.zip Objects

@@ -1,0 +1,9 @@
+<map>
+	<name> Iron Ridge </name>
+	<music> common/sound/menu/music/load/alkali_1m5ed.ogg </music>
+	<modes>
+		<mode type="gpm_cq">
+			<maptype players="64" type="aasfullassets" locid="GAMEMODE_DESCRIPTION_aasfullassets"></maptype>
+		</mode>
+	</modes>
+</map>

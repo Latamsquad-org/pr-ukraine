@@ -1,0 +1,12 @@
+[10-02--2026 23:07:11] GameStatus: 3
+	EXCEPTION: Exception'>
+	No offset for part ('Engine', 'tailengine') for vehicle us_ahe_kiowa
+	Trace:
+		realityvehicles.py on line 1787
+		realityvehicles.py on line 1839
+[10-02--2026 23:07:16] GameStatus: 3
+	EXCEPTION: Exception'>
+	No offset for part ('Engine', 'tailengine') for vehicle us_ahe_kiowa
+	Trace:
+		realityvehicles.py on line 1820
+		realityvehicles.py on line 1839

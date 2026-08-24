@@ -1,0 +1,24 @@
+<map>
+	<name> Grostok </name>
+	<music> common/sound/menu/music/load/0_9_map18.ogg </music>
+	<modes>
+		<mode type="gpm_cq">
+			<maptype players="16" type="aasinfantry" locid="GAMEMODE_DESCRIPTION_aasinfantry"></maptype>
+			<maptype players="32" type="aasalternative" locid="GAMEMODE_DESCRIPTION_aasalternative"></maptype>
+			<maptype players="64" type="aasfullassets" locid="GAMEMODE_DESCRIPTION_aasfullassets"></maptype>
+			<maptype players="128" type="aaslarge" locid="GAMEMODE_DESCRIPTION_aaslarge"></maptype>	
+			
+		</mode>
+		<mode type="gpm_skirmish">
+			<maptype players="16" type="skirmish" locid="GAMEMODE_DESCRIPTION_skirmish"></maptype>
+		</mode>
+		<mode type="gpm_insurgency">
+			<maptype players="64" type="insurgency" locid="GAMEMODE_DESCRIPTION_insurgency"></maptype>
+		</mode>
+		<mode type="gpm_coop">
+			<maptype ai="1" players="16" type="coopinfantry" locid="GAMEMODE_DESCRIPTION_coopinfantry"></maptype>
+			<maptype ai="1" players="32" type="coopalternative" locid="GAMEMODE_DESCRIPTION_coopalternative"></maptype>
+			<maptype ai="1" players="64" type="coopfullassets" locid="GAMEMODE_DESCRIPTION_coopfullassets"></maptype>
+		</mode>
+	</modes>
+</map>

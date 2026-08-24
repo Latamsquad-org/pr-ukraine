@@ -1,0 +1,9 @@
+<map>
+	<name> Ascheberg </name>
+	<music> common/sound/menu/music/load/unicode_ascheberg.ogg </music>
+	<modes>
+		<mode type="gpm_cq">                   
+			<maptype players="32" type="aasalternative" locid="GAMEMODE_DESCRIPTION_aasalternative"></maptype>
+		</mode>        	
+	</modes>
+</map>

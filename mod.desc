@@ -1,0 +1,12 @@
+<mod>
+	<title> Project Reality: BF2 </title>
+	<desc> Project Reality: BF2 is a complete modification that aims to create a realistic combat environment through a strong emphasis on teamwork and co-ordination. Realism has finally been deployed! NOTE: You must run Project Reality: BF2 from the installed shortcuts in order to play. </desc>
+	<url> http://realitymod.com </url>
+	<logo> Menu/External/FlashMenu/Description/mod.png </logo>
+	<icon> Menu/External/FlashMenu/Description/mod_icon.png </icon>
+	<music> Common/Sound/Menu/Music/Load/Alkali_Main_Menu.ogg </music>
+	<version> 1.8.1.2 </version>
+	<default_soldier_template> pr_ru_soldier3 </default_soldier_template>
+	<default_soldier_kit_template> ru_at </default_soldier_kit_template>
+	<editorversion> Battlefield2 </editorversion>
+</mod>

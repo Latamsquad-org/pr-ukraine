@@ -1,0 +1,17 @@
+fileManager.mountArchive content/common_client.zip Common
+fileManager.mountArchive content/fonts_custom.zip Fonts
+fileManager.mountArchive content/fonts_client.zip Fonts
+fileManager.mountArchive content/menu_client.zip Menu
+fileManager.mountArchive content/objects_common_client.zip Objects
+fileManager.mountArchive content/objects_statics_client.zip Objects
+fileManager.mountArchive content/objects_vehicles_client.zip Objects
+fileManager.mountArchive content/objects_weapons_client.zip Objects
+
+var v_lowShaders
+fileManager.fileExists vars/lowShaders -> v_lowShaders
+if v_lowShaders == 1
+    fileManager.mountArchive content/shaders_low_client.zip Shaders
+else
+    fileManager.mountArchive content/shaders_high_client.zip Shaders
+endIf
+fileManager.mountArchive content/shaders_client.zip Shaders

@@ -1,0 +1,21 @@
+rem |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+rem |-------------------------------------------------------------------------------|
+rem |                          Project Reality Map List                             |
+rem |-------------------------------------------------------------------------------|
+rem |    16/32/64 does not represent player size, instead, different map layouts    |
+rem |         128 layers are recommended to be used with 100 player servers         |
+rem |-------------------------------------------------------------------------------|
+rem |  16 = Infantry Layer     At most light transport vehicles only                |
+rem |  32 = Alternative Layer  An alternative layout with different vehicles/flags  |
+rem |  64 = Standard Layer     The normal map layout                                |
+rem | 128 = Large Layer        Copy of 64 with higher ticket count for longer rounds|
+rem |-------------------------------------------------------------------------------|
+rem |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+rem mapList.append <mapname> <gamemode> <layer>
+
+rem |-------------------------------------------------------------------------------|
+rem |   Advance and Secure. Capture and defend control points (Default GameMode)    |
+rem |-------------------------------------------------------------------------------|
+
+mapList.append donbas gpm_cq 64

@@ -1,0 +1,16 @@
+<map>
+	<name> Battle of Kerch </name>
+	<music> common/sound/menu/music/load/unicode_battle_of_kerch.ogg </music>
+	<modes>
+		<mode type="gpm_cq">
+			<maptype players="32" type="aasalternative" locid="GAMEMODE_DESCRIPTION_aasalternative"></maptype>
+			<maptype players="64" type="aasfullassets" locid="GAMEMODE_DESCRIPTION_aasfullassets"></maptype>
+			<maptype players="128" type="aasfullassets" locid="GAMEMODE_DESCRIPTION_aasfullassets"></maptype>
+		</mode>
+		<mode type="gpm_coop">
+			<maptype ai="1" players="32" type="coopfullassets" locid="GAMEMODE_DESCRIPTION_coopfullassets"></maptype>
+			<maptype ai="1" players="64" type="coopfullassets" locid="GAMEMODE_DESCRIPTION_coopfullassets"></maptype>
+			<maptype ai="1" players="128" type="coopfullassets" locid="GAMEMODE_DESCRIPTION_coopfullassets"></maptype>
+		</mode>
+	</modes>
+</map>
