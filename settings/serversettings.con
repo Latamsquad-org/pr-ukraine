@@ -1,0 +1,81 @@
+rem Name of the server for the server list
+sv.serverName "[LATAMSQUAD] #4 Eventos - latamsquad.org"
+rem Password for joining the server
+sv.password "ukra"
+rem 1 for internet servers, 0 for everything else
+sv.internet 1
+rem IPv4 of the server
+sv.serverIP "172.84.94.108"
+rem Port of the server
+sv.serverPort 16570
+rem Port to query server information
+sv.gameSpyPort 29903
+rem IPv4:Port of the mumble server to use. Leave empty to disable mumble
+sv.voipServerRemoteIP "172.84.94.109:64740"
+rem Message displayed in loading screen
+sv.welcomeMessage "Bienvenido a LATAMSQUAD!|LEE LAS REGLAS en latamsquad.org o discord.gg/latamsquad|Comunicacion en espanol o ingles|Respeto ante todo! :)|No quieres esperar en la cola? Adquiere un pase VIP con slot reservado en latamsquad.org"
+rem Message displayed in server browser. User '|' for line breaks and add 'pr_maplist' to add next maps in rotation
+sv.sponsorText "Visita nuestro Discord para mas informacion! discord.gg/latamsquad"
+rem Logo displayed in server browser
+sv.sponsorLogoURL "https://i.imgur.com/TA1dPk7.png"
+rem Logo displayed in server browser
+sv.communityLogoURL "https://i.imgur.com/TA1dPk7.png"
+
+sv.allowFreeCam 0
+sv.allowExternalViews 0
+sv.allowNoseCam 0
+sv.hitIndicator 0
+sv.maxPlayers 100
+sv.numPlayersNeededToStart 2
+sv.notEnoughPlayersRestartDelay 15
+sv.ticketRatio 100
+sv.roundsPerMap 1
+sv.timeLimit 0
+sv.scoreLimit 0
+sv.soldierFriendlyFire 100
+sv.vehicleFriendlyFire 100
+sv.soldierSplashFriendlyFire 100
+sv.vehicleSplashFriendlyFire 100
+sv.tkPunishEnabled 1
+sv.tkNumPunishToKick 3
+sv.tkPunishByDefault 0
+sv.votingEnabled 0
+sv.voteTime 90
+sv.minPlayersForVoting 1
+sv.allowNATNegotiation 0
+sv.autoRecord 1
+sv.demoIndexURL https://latamsquad.org/project-reality/#complementos
+sv.demoDownloadURL https://latamsquad.org/project-reality/#complementos
+sv.autoDemoHook "adminutils/demo/rotate_demo.exe"
+sv.demoQuality 8
+sv.timeBeforeRestartMap 30
+sv.autoBalanceTeam 0
+sv.teamRatioPercent 100
+sv.coopBotRatio 50
+sv.coopBotCount 48
+sv.coopBotDifficulty 90
+sv.useGlobalRank 1
+sv.useGlobalUnlocks 1
+sv.radioSpamInterval 6
+sv.radioMaxSpamFlagCount 6
+sv.radioBlockedDurationTime 10
+sv.NumReservedSlots 1
+
+rem DO NOT MODIFY
+sv.adminScript ""
+
+rem NOT SUPPORTED
+sv.startDelay 15
+sv.endDelay 15
+sv.spawnTime 10
+sv.manDownTime 10
+sv.endOfRoundDelay 15
+sv.punkBuster 0
+sv.voipEnabled 0
+sv.voipQuality 3
+sv.interfaceIP ""
+sv.voipServerRemote 0
+sv.voipServerPort 55125
+sv.voipBFClientPort 55123
+sv.voipBFServerPort 55124
+sv.voipSharedPassword ""

@@ -4,3 +4,16 @@ Thumbs.db
 
 # Copias duplicadas locales (ej. "archivo (1).con")
 * (1).*
+
+# Logs de launcher, Python y bans (runtime local)
+*.log
+bin/PRLauncher.log
+
+# Demos de partidas grabadas por el servidor
+demos/
+
+# Settings locales del cliente (nombre de jugador, etc.)
+settings/Usersettings.con
+
+# Variables/runtime locales del motor
+vars/
