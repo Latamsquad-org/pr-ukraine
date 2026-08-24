@@ -1,7 +1,7 @@
 # FPV launch from a fully built sandbag bunker (command_bunker mesh).
 # Press E next to the emplacement to spawn fpv_drone 10 m above, then enter it.
 # Never seat the player inside the bunker. Exit the drone next to it, not inside.
-# Do not change bunker HP. If the drone dies, move it away and drop the player outside.
+# Do not change bunker HP.
 import bf2
 import host
 import realityadmin as radmin
@@ -18,7 +18,7 @@ PCO_TYPE = 'dice.hfe.world.ObjectTemplate.PlayerControlObject'
 # Stand outside the bunker in local space (meters). Not an interior seat.
 STAND_OFFSET = (0.0, 0.3, -5.0)
 # Spawn the drone this many meters above the bunker origin (world up).
-SPAWN_HEIGHT = 10.0
+SPAWN_HEIGHT = 5.0
 # Consider the emplacement built when HP is at least this ratio of maxHitPoints.
 BUILT_HP_RATIO = 0.85
 # Ignore a new E on the bunker right after returning from the drone.
@@ -418,7 +418,6 @@ def _expireLaunch(key):
             rtimer.fireOnce(_teleportAfterEject, 0.3, (player, _standPos(pending)))
         elif not _isDrone(current):
             _teleportTo(player, _standPos(pending))
-    _cleanupDrone(pending.get('drone'))
 
 
 def _eject(player):
@@ -440,7 +439,6 @@ def _onExitVehicle(player, vehicle):
     if pending is not None:
         g_cooldown[key] = host.timer_getWallTime() + REENTER_COOLDOWN
         _teleportTo(player, _standPos(pending))
-        _cleanupDrone(pending.get('drone'))
         return
     flying = g_flying.pop(key, None)
     if flying is None:
@@ -455,7 +453,6 @@ def _onExitVehicle(player, vehicle):
     elif bunker is None or _isBunkerDead(bunker):
         stand = _wreckStandPos(flying)
     _teleportTo(player, stand)
-    _cleanupDrone(flying.get('drone'))
 
 
 def _teleportTo(player, target):
@@ -485,18 +482,6 @@ def _teleportTo(player, target):
     rtimer.fireOnce(_move, 1.0, (player, target))
 
 
-def _cleanupDrone(drone):
-    if drone is None or not drone.isValid():
-        return
-    if not getattr(drone, 'latam_bunker_fpv', None):
-        return
-    try:
-        # Move far away. Never kill it: death detonates C4 and turns the bunker into dummy/wreck.
-        drone.setPosition((0.0, -500.0, 0.0))
-    except:
-        rdebug.errorMessage()
-
-
 def _onAssetRemoved(typ, team, obj):
     if typ != 'sandbags':
         return
@@ -523,7 +508,6 @@ def _endFlight(key, flying):
         if _isDrone(current):
             rmemory.sendPlayerButtonClickEvent(player, rmemory.PI_USE)
         _teleportTo(player, stand)
-    _cleanupDrone(flying.get('drone'))
 
 
 def _watchBunkers(args=None):
@@ -565,7 +549,6 @@ def _recallFromDestroyedBunker(key, flying):
     g_cooldown[key] = host.timer_getWallTime() + REENTER_COOLDOWN
     if player is None or not player.isValid() or not player.isAlive() or player.isManDown():
         g_flying.pop(key, None)
-        _cleanupDrone(flying.get('drone'))
         return
     rdebug.debugMessage('Bunker destroyed, recalling FPV player', 'gameplay')
     rmemory.sendPlayerButtonClickEvent(player, rmemory.PI_USE)
@@ -586,7 +569,6 @@ def _finishRecall(args):
                 rdebug.errorMessage()
             rmemory.sendPlayerButtonClickEvent(player, rmemory.PI_USE)
         _teleportTo(player, wreck)
-    _cleanupDrone(drone)
 
 
 def _cancelPendingToWreck(key, pending):
@@ -596,7 +578,6 @@ def _cancelPendingToWreck(key, pending):
     if player is not None and player.isValid() and player.isAlive() and not player.isManDown():
         _eject(player)
         rtimer.fireOnce(_teleportAfterEject, 0.3, (player, wreck))
-    _cleanupDrone(pending.get('drone'))
 
 
 def _teleportAfterEject(args):
@@ -613,11 +594,6 @@ def _onVehicleDestroyed(vehicle, attacker):
         return
     if not getattr(root, 'latam_bunker_fpv', None):
         return
-    try:
-        if root.isValid():
-            root.setPosition((0.0, -500.0, 0.0))
-    except:
-        pass
     for key, flying in list(g_flying.items()):
         if flying.get('ending'):
             continue
