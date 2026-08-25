@@ -1,8 +1,6 @@
 # FPV launch from a fully built sandbag bunker (command_bunker mesh).
-# Press E next to the emplacement to spawn fpv_drone 10 m above, then enter it.
-# Never seat the player inside the bunker. Exit the drone next to it, not inside.
-# Do not change bunker HP.
-# Flight feel is only .tweak/.con (no Python roll assist).
+# E inside the emplacement (EntryPoint trigger) spawns fpv_drone on the roof
+# and seats the player in it. Do not keep them inside the bunker. Do not change bunker HP.
 import bf2
 import host
 import realityadmin as radmin
@@ -18,7 +16,7 @@ DRONE_TEMPLATE = 'fpv_drone'
 PCO_TYPE = 'dice.hfe.world.ObjectTemplate.PlayerControlObject'
 # Stand outside the bunker in local space (meters). Not an interior seat.
 STAND_OFFSET = (0.0, 0.3, -5.0)
-# Spawn the drone this many meters above the bunker origin (world up).
+# Spawn the drone this many meters above the bunker origin (roof, world up).
 SPAWN_HEIGHT = 5.0
 # Consider the emplacement built when HP is at least this ratio of maxHitPoints.
 BUILT_HP_RATIO = 0.85
@@ -244,7 +242,7 @@ def _startLaunch(player, bunker):
         'bunker_ejected': 1,
         'use_sent': 0,
     }
-    # Leave the bunker PCO immediately. Do not keep an interior seat/camera.
+    # Trigger fired: leave the bunker seat and board the roof drone.
     rmemory.sendPlayerButtonClickEvent(player, rmemory.PI_USE)
     _spawnDrone(player, bunker, roof, rot)
     rtimer.fireOnce(_tryEnterDrone, 0.2, key)
