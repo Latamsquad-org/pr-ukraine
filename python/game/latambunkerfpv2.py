@@ -1,8 +1,6 @@
-# FPV launch from a fully built sandbag bunker (command_bunker mesh).
-# Press E next to the emplacement to spawn fpv_drone 10 m above, then enter it.
-# Never seat the player inside the bunker. Exit the drone next to it, not inside.
-# Do not change bunker HP.
-# Flight feel is only .tweak/.con (no Python roll assist).
+# Parallel FPV v2: Fiber-Optic style. Body stays at a pad next to the bunker.
+# Pad template fpv_drone2 fires TV-guided projectile fpv_drone2_p (fpv_drone mesh).
+# Do not change bunker HP. Does not replace latambunkerfpv.py.
 import bf2
 import host
 import realityadmin as radmin
@@ -14,12 +12,10 @@ import realityspawner as rspawner
 import realitytimer as rtimer
 
 BUNKER_TEMPLATES = ('deployable_sandbags_5m', 'deployable_sandbags_5m_sp')
-DRONE_TEMPLATE = 'fpv_drone'
+DRONE_TEMPLATE = 'fpv_drone2'
 PCO_TYPE = 'dice.hfe.world.ObjectTemplate.PlayerControlObject'
-# Stand outside the bunker in local space (meters). Not an interior seat.
+# Stand / pad spawn in bunker local space (meters).
 STAND_OFFSET = (0.0, 0.3, -5.0)
-# Spawn the drone this many meters above the bunker origin (world up).
-SPAWN_HEIGHT = 5.0
 # Consider the emplacement built when HP is at least this ratio of maxHitPoints.
 BUILT_HP_RATIO = 0.85
 # Ignore a new E on the bunker right after returning from the drone.
@@ -47,7 +43,7 @@ def init():
     if not rmemory.isWindowsListenServer:
         revents.registerObjectSpawnedTemplate(DRONE_TEMPLATE)
         revents.registerObjectSpawnedCallback(_onObjectSpawned)
-    rdebug.debugMessage('latambunkerfpv initialized', 'gameplay')
+    rdebug.debugMessage('latambunkerfpv2 initialized', 'gameplay')
 
 
 def _onGameStatusChanged(status):
@@ -90,10 +86,17 @@ def _worldOffset(obj, offset):
     return rcore.vectorAddition(pos, world)
 
 
-def _airSpawnPos(bunker):
-    # World-up, not bunker-local: keeps the drone in the air even if the mesh is rotated.
-    pos = bunker.getPosition()
-    return (pos[0], pos[1] + SPAWN_HEIGHT, pos[2])
+def _fireButton():
+    for name in ('PI_FIRE', 'PIFire', 'PI_PRIMARYFIRE'):
+        if hasattr(rmemory, name):
+            return getattr(rmemory, name)
+    return 0
+
+
+def _pressFire(player):
+    if player is None or not player.isValid():
+        return
+    rmemory.sendPlayerButtonClickEvent(player, _fireButton())
 
 
 def _sameObj(a, b):
@@ -208,6 +211,8 @@ def _onEnterVehicle(player, vehicle, freeSoldier=False):
         if pending is not None:
             pending['use_sent'] = 1
             _markFlying(key, pending, root)
+            rtimer.fireOnce(_pressFire, 0.15, player)
+            rtimer.fireOnce(_pressFire, 0.45, player)
         return
     if not _isBunker(root):
         return
@@ -230,7 +235,7 @@ def _onEnterVehicle(player, vehicle, freeSoldier=False):
 def _startLaunch(player, bunker):
     key = _playerKey(player)
     stand = _worldOffset(bunker, STAND_OFFSET)
-    roof = _airSpawnPos(bunker)
+    pad = stand
     rot = bunker.getRotation()
     origin = bunker.getPosition()
     g_pending[key] = {
@@ -238,7 +243,7 @@ def _startLaunch(player, bunker):
         'bunker': bunker,
         'origin': origin,
         'stand': stand,
-        'roof': roof,
+        'roof': pad,
         'rotation': (rot[0], 0.0, 0.0),
         'started': host.timer_getWallTime(),
         'bunker_ejected': 1,
@@ -246,7 +251,7 @@ def _startLaunch(player, bunker):
     }
     # Leave the bunker PCO immediately. Do not keep an interior seat/camera.
     rmemory.sendPlayerButtonClickEvent(player, rmemory.PI_USE)
-    _spawnDrone(player, bunker, roof, rot)
+    _spawnDrone(player, bunker, pad, rot)
     rtimer.fireOnce(_tryEnterDrone, 0.2, key)
     rtimer.fireOnce(_tryEnterDrone, 0.5, key)
     rtimer.fireOnce(_tryEnterDrone, 0.9, key)
@@ -258,7 +263,7 @@ def _startLaunch(player, bunker):
 def _spawnDrone(player, bunker, roof, rot):
     global g_spawn_id
     g_spawn_id += 1
-    name = 'fpv_drone_bunker_%s_%s' % (g_spawn_id, player.index)
+    name = 'fpv_drone2_bunker_%s_%s' % (g_spawn_id, player.index)
     props = {
         'team': str(player.getTeam()),
         'template': DRONE_TEMPLATE,
@@ -272,14 +277,14 @@ def _spawnDrone(player, bunker, roof, rot):
     else:
         revents.registerObjectSpawnedTemplate(DRONE_TEMPLATE)
     rspawner.createSpawner(name, props)
-    rdebug.debugMessage('Spawned bunker FPV spawner %s' % name, 'gameplay')
+    rdebug.debugMessage('Spawned bunker FPV2 pad %s' % name, 'gameplay')
 
 
 def _onObjectSpawned(obj):
     root = _root(obj)
     if not _isDrone(root):
         return
-    if getattr(root, 'latam_bunker_fpv', None):
+    if getattr(root, 'latam_bunker_fpv2', None):
         return
     _claimDrone(root)
 
@@ -292,7 +297,7 @@ def _findListenDrone(key):
     roof = pending['roof']
     for drone in drones:
         root = _root(drone)
-        if getattr(root, 'latam_bunker_fpv', None):
+        if getattr(root, 'latam_bunker_fpv2', None):
             continue
         if rcore.getSquareVectorDistance(root.getPosition(), roof) <= DRONE_MATCH_DIST_SQ:
             _assignDrone(pending['player'], root, pending)
@@ -329,7 +334,7 @@ def _markFlying(key, pending, drone):
 def _assignDrone(player, drone, pending):
     if player is None or not player.isValid():
         return
-    drone.latam_bunker_fpv = 1
+    drone.latam_bunker_fpv2 = 1
     pending['drone'] = drone
     # Team is set by the spawner ('team' in props). Vehicle objects have
     # getTeam but not setTeam; calling setTeam logs AttributeError.
@@ -355,8 +360,9 @@ def _tryEnterDrone(key):
     current = _root(player.getVehicle())
     air = pending['roof']
     if _isDrone(current):
-        # Already in. Do not setPosition: moving an occupied vehicle kicks the player out.
+        # Already in the pad. Do not setPosition on an occupied object.
         _markFlying(key, pending, drone)
+        rtimer.fireOnce(_pressFire, 0.15, player)
         return
     # Leave the bunker PCO first. setPosition on a seated soldier does not move the camera.
     if _isBunker(current):
@@ -593,7 +599,7 @@ def _onVehicleDestroyed(vehicle, attacker):
         return
     if not _isDrone(root):
         return
-    if not getattr(root, 'latam_bunker_fpv', None):
+    if not getattr(root, 'latam_bunker_fpv2', None):
         return
     for key, flying in list(g_flying.items()):
         if flying.get('ending'):
