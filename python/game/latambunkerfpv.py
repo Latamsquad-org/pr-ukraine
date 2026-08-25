@@ -2,6 +2,7 @@
 # Press E next to the emplacement to spawn fpv_drone 10 m above, then enter it.
 # Never seat the player inside the bunker. Exit the drone next to it, not inside.
 # Do not change bunker HP.
+# Soft roll damp while flying: small hitbox + heli torque causes pendulum roll.
 import bf2
 import host
 import realityadmin as radmin
@@ -27,6 +28,11 @@ REENTER_COOLDOWN = 2.0
 DRONE_MATCH_DIST_SQ = 400.0
 # Stand a bit above the wreck origin so the soldier is not buried in debris.
 WRECK_STAND_Y = 1.0
+# Flight assist: damp roll toward level (yaw/pitch untouched).
+FLIGHT_TICK = 0.05
+ROLL_DAMP = 0.25
+ROLL_HARD_DEG = 55.0
+ROLL_SKIP_DEG = 0.8
 
 g_pending = {}
 g_flying = {}
@@ -43,6 +49,7 @@ def init():
     host.registerHandler('PlayerDeath', _onPlayerDeath, 1)
     host.registerHandler('PlayerDisconnect', _onPlayerDisconnect, 1)
     rtimer.repeatingTask(_watchBunkers, 0.2)
+    rtimer.repeatingTask(_stabilizeFlying, FLIGHT_TICK)
     if not rmemory.isWindowsListenServer:
         revents.registerObjectSpawnedTemplate(DRONE_TEMPLATE)
         revents.registerObjectSpawnedCallback(_onObjectSpawned)
@@ -323,6 +330,35 @@ def _markFlying(key, pending, drone):
         'drone': drone,
     }
     g_pending.pop(key, None)
+
+
+def _stabilizeFlying(args=None):
+    # Kill pendulum roll only. Keep yaw/pitch so mouse/stick can still fly forward.
+    # getRotation is (yaw, pitch, roll) degrees, same as realityadmin.flipPlayer.
+    if not g_flying:
+        return
+    for key, flying in list(g_flying.items()):
+        player = flying.get('player')
+        drone = flying.get('drone')
+        if player is None or not player.isValid() or not player.isAlive() or player.isManDown():
+            continue
+        if drone is None or _isDroneDead(drone):
+            continue
+        current = _root(player.getVehicle())
+        if not _sameObj(current, drone):
+            continue
+        try:
+            yaw, pitch, roll = drone.getRotation()
+            roll = float(roll)
+            if abs(roll) < ROLL_SKIP_DEG:
+                continue
+            if abs(roll) > ROLL_HARD_DEG:
+                new_roll = roll * 0.45
+            else:
+                new_roll = roll * (1.0 - ROLL_DAMP)
+            drone.setRotation((float(yaw), float(pitch), float(new_roll)))
+        except:
+            rdebug.errorMessage()
 
 
 def _assignDrone(player, drone, pending):
